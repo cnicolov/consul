@@ -240,8 +240,8 @@ func DefaultNonPooledConfig() *Config {
 // given function to make the transport.
 func defaultConfig(transportFn func() *http.Transport) *Config {
 	config := &Config{
-		Address: "127.0.0.1:8500",
-		Scheme:  "http",
+		Address:   "127.0.0.1:8500",
+		Scheme:    "http",
 		Transport: transportFn(),
 	}
 

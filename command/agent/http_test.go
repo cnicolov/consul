@@ -21,7 +21,7 @@ import (
 
 	"github.com/hashicorp/consul/consul/structs"
 	"github.com/hashicorp/consul/logger"
-	"github.com/hashicorp/consul/testrpc"
+	"github.com/hashicorp/consul/testutil/wait"
 	"github.com/hashicorp/go-cleanhttp"
 )
 
@@ -45,7 +45,7 @@ func makeHTTPServerWithACLs(t *testing.T) (string, *HTTPServer) {
 
 	// Need a leader to look up ACLs, so wait here so we don't need to
 	// repeat this in each test.
-	testrpc.WaitForLeader(t, srv.agent.RPC, "dc1")
+	wait.ForLeader(t, srv.agent.RPC, "dc1")
 	return dir, srv
 }
 
@@ -763,6 +763,6 @@ func httpTestWithConfig(t *testing.T, f func(srv *HTTPServer), cb func(c *Config
 	defer os.RemoveAll(dir)
 	defer srv.Shutdown()
 	defer srv.agent.Shutdown()
-	testrpc.WaitForLeader(t, srv.agent.RPC, "dc1")
+	wait.ForLeader(t, srv.agent.RPC, "dc1")
 	f(srv)
 }

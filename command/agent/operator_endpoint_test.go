@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/consul/api"
 	"github.com/hashicorp/consul/consul/structs"
-	"github.com/hashicorp/consul/testutil"
+	"github.com/hashicorp/consul/testutil/retry"
 )
 
 func TestOperator_RaftConfiguration(t *testing.T) {
@@ -452,32 +452,30 @@ func TestOperator_ServerHealth(t *testing.T) {
 			t.Fatalf("err: %v", err)
 		}
 
-		if err := testutil.WaitForResult(func() (bool, error) {
+		//todo(fs): fix me
+		retry.Fatal(t, func() error {
 			resp := httptest.NewRecorder()
 			obj, err := srv.OperatorServerHealth(resp, req)
 			if err != nil {
-				return false, fmt.Errorf("err: %v", err)
+				return fmt.Errorf("err: %v", err)
 			}
 			if resp.Code != 200 {
-				return false, fmt.Errorf("bad code: %d", resp.Code)
+				return fmt.Errorf("bad code: %d", resp.Code)
 			}
 			out, ok := obj.(*api.OperatorHealthReply)
 			if !ok {
-				return false, fmt.Errorf("unexpected: %T", obj)
+				return fmt.Errorf("unexpected: %T", obj)
 			}
 			if len(out.Servers) != 1 ||
 				!out.Servers[0].Healthy ||
 				out.Servers[0].Name != srv.agent.config.NodeName ||
 				out.Servers[0].SerfStatus != "alive" ||
 				out.FailureTolerance != 0 {
-				return false, fmt.Errorf("bad: %v", out)
+				return fmt.Errorf("bad: %v", out)
 			}
 
-			return true, nil
-		}); err != nil {
-			t.Fatal(err)
-		}
-
+			return nil
+		})
 	}, cb)
 }
 
@@ -494,29 +492,27 @@ func TestOperator_ServerHealth_Unhealthy(t *testing.T) {
 			t.Fatalf("err: %v", err)
 		}
 
-		if err := testutil.WaitForResult(func() (bool, error) {
+		//todo(fs): fix me
+		retry.Fatal(t, func() error {
 			resp := httptest.NewRecorder()
 			obj, err := srv.OperatorServerHealth(resp, req)
 			if err != nil {
-				return false, fmt.Errorf("err: %v", err)
+				return fmt.Errorf("err: %v", err)
 			}
 			if resp.Code != 429 {
-				return false, fmt.Errorf("bad code: %d", resp.Code)
+				return fmt.Errorf("bad code: %d", resp.Code)
 			}
 			out, ok := obj.(*api.OperatorHealthReply)
 			if !ok {
-				return false, fmt.Errorf("unexpected: %T", obj)
+				return fmt.Errorf("unexpected: %T", obj)
 			}
 			if len(out.Servers) != 1 ||
 				out.Healthy ||
 				out.Servers[0].Name != srv.agent.config.NodeName {
-				return false, fmt.Errorf("bad: %v", out)
+				return fmt.Errorf("bad: %v", out)
 			}
 
-			return true, nil
-		}); err != nil {
-			t.Fatal(err)
-		}
-
+			return nil
+		})
 	}, cb)
 }
